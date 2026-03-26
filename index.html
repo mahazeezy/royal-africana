@@ -657,6 +657,16 @@ footer{background:#050200;color:rgba(255,255,255,.48);padding:52px 0 28px;}
           <div id="cart-total" class="cart-total" style="display:none;"><span>Total</span><span id="total-amt">$0</span></div>
           <div class="ptabs" id="order-ptabs" role="tablist"></div>
           <div class="ppanels" id="order-ppanels"></div>
+          <!-- Hidden Netlify Form for email notifications -->
+          <form id="netlify-order-form" name="royal-africana-orders" netlify netlify-honeypot="bot-field" style="display:none;">
+            <input type="hidden" name="form-name" value="royal-africana-orders"/>
+            <input type="hidden" name="bot-field"/>
+            <input type="hidden" id="nf-name" name="customer-name"/>
+            <input type="hidden" id="nf-phone" name="customer-phone"/>
+            <input type="hidden" id="nf-order" name="order-items"/>
+            <input type="hidden" id="nf-total" name="order-total"/>
+            <input type="hidden" id="nf-notes" name="special-requests"/>
+          </form>
           <div class="f-row"><label for="o-name">Your Name *</label><input type="text" id="o-name" placeholder="Jane Smith" required autocomplete="name"/></div>
           <div class="f-row"><label for="o-phone">Phone Number *</label><input type="tel" id="o-phone" placeholder="(773) 555-0000" required autocomplete="tel"/></div>
           <div class="f-row"><label for="o-notes">Special Requests</label><textarea id="o-notes" placeholder="Spice level, dietary needs, delivery address..."></textarea></div>
@@ -996,8 +1006,49 @@ function renderCart(){
 function submitOrder(){
   var name=document.getElementById("o-name").value.trim();
   var phone=document.getElementById("o-phone").value.trim();
+  var notes=document.getElementById("o-notes").value.trim();
   if(cart.length===0){alert("Please add at least one item!");return;}
   if(!name||!phone){alert("Please enter your name and phone number.");return;}
+
+  // Build order summary
+  var orderLines=cart.map(function(i){return i.name+" - "+i.price.toFixed(2);});
+  var total=cart.reduce(function(s,i){return s+i.price;},0);
+  var orderText=orderLines.join(", ");
+  var totalText="$"+total.toFixed(2);
+
+  // === NETLIFY FORM SUBMISSION (Email notification) ===
+  document.getElementById("nf-name").value=name;
+  document.getElementById("nf-phone").value=phone;
+  document.getElementById("nf-order").value=orderText;
+  document.getElementById("nf-total").value=totalText;
+  document.getElementById("nf-notes").value=notes||"None";
+
+  var formData=new FormData(document.getElementById("netlify-order-form"));
+  fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:new URLSearchParams(formData).toString()
+  }).then(function(){
+    console.log("Order emailed successfully");
+  }).catch(function(err){
+    console.log("Email error:",err);
+  });
+
+  // === WHATSAPP NOTIFICATION (Owner receives message) ===
+  var waNumber="12817605557";
+  var waMsg="🍽️ NEW ORDER - Royal Africana Lounge%0A%0A";
+  waMsg+="👤 Customer: "+encodeURIComponent(name)+"%0A";
+  waMsg+="📞 Phone: "+encodeURIComponent(phone)+"%0A%0A";
+  waMsg+="🛒 ORDER:%0A";
+  cart.forEach(function(i){
+    waMsg+=encodeURIComponent("• "+i.name+" - $"+i.price.toFixed(2))+"%0A";
+  });
+  waMsg+="%0A💰 Total: "+encodeURIComponent(totalText)+"%0A";
+  if(notes) waMsg+="%0A📝 Notes: "+encodeURIComponent(notes);
+  waMsg+="%0A%0A⏰ "+encodeURIComponent(new Date().toLocaleString());
+
+  // Open WhatsApp for owner notification
+  window.open("https://wa.me/"+waNumber+"?text="+waMsg,"_blank");
+
+  // Show success
   document.getElementById("order-fields").style.display="none";
   document.getElementById("order-success").classList.add("show");
   document.getElementById("cart-fab").classList.remove("show");
