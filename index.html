@@ -1011,12 +1011,12 @@ function submitOrder(){
   if(!name||!phone){alert("Please enter your name and phone number.");return;}
 
   // Build order summary
-  var orderLines=cart.map(function(i){return i.name+" - "+i.price.toFixed(2);});
+  var orderLines=cart.map(function(i){return i.name+" - $"+i.price.toFixed(2);});
   var total=cart.reduce(function(s,i){return s+i.price;},0);
   var orderText=orderLines.join(", ");
   var totalText="$"+total.toFixed(2);
 
-  // === NETLIFY FORM SUBMISSION (Email notification) ===
+  // === NETLIFY FORM SUBMISSION (Email notification to owner) ===
   document.getElementById("nf-name").value=name;
   document.getElementById("nf-phone").value=phone;
   document.getElementById("nf-order").value=orderText;
@@ -1027,28 +1027,12 @@ function submitOrder(){
   fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
     body:new URLSearchParams(formData).toString()
   }).then(function(){
-    console.log("Order emailed successfully");
+    console.log("Order emailed to owner successfully");
   }).catch(function(err){
     console.log("Email error:",err);
   });
 
-  // === WHATSAPP NOTIFICATION (Owner receives message) ===
-  var waNumber="12817605557";
-  var waMsg="🍽️ NEW ORDER - Royal Africana Lounge%0A%0A";
-  waMsg+="👤 Customer: "+encodeURIComponent(name)+"%0A";
-  waMsg+="📞 Phone: "+encodeURIComponent(phone)+"%0A%0A";
-  waMsg+="🛒 ORDER:%0A";
-  cart.forEach(function(i){
-    waMsg+=encodeURIComponent("• "+i.name+" - $"+i.price.toFixed(2))+"%0A";
-  });
-  waMsg+="%0A💰 Total: "+encodeURIComponent(totalText)+"%0A";
-  if(notes) waMsg+="%0A📝 Notes: "+encodeURIComponent(notes);
-  waMsg+="%0A%0A⏰ "+encodeURIComponent(new Date().toLocaleString());
-
-  // Open WhatsApp for owner notification
-  window.open("https://wa.me/"+waNumber+"?text="+waMsg,"_blank");
-
-  // Show success
+  // Show success — no WhatsApp popup
   document.getElementById("order-fields").style.display="none";
   document.getElementById("order-success").classList.add("show");
   document.getElementById("cart-fab").classList.remove("show");
