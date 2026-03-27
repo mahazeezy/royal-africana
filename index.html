@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KS185Z47C6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-KS185Z47C6');
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <meta name="theme-color" content="#1a0a00"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -102,6 +110,7 @@ a{color:inherit;text-decoration:none;}
   display:flex;align-items:center;
   position:relative;overflow:hidden;
   padding:60px 0 88px;
+  z-index:0;
 }
 #home::before{
   content:"";position:absolute;inset:0;
@@ -538,6 +547,7 @@ footer{background:#050200;color:rgba(255,255,255,.48);padding:52px 0 28px;}
 
 <!-- HERO -->
 <header id="home">
+
   <div class="orb o1" aria-hidden="true"></div>
   <div class="orb o2" aria-hidden="true"></div>
   <div class="orb o3" aria-hidden="true"></div>
